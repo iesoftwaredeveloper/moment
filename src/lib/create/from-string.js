@@ -63,12 +63,13 @@ export function configFromISO(config) {
         allowTime,
         dateFormat,
         timeFormat,
-        tzFormat;
+        tzFormat,
+        isoDatesLen = isoDates.length,
+        isoTimesLen = isoTimes.length;
 
     if (match) {
         getParsingFlags(config).iso = true;
-
-        for (i = 0, l = isoDates.length; i < l; i++) {
+        for (i = 0, l = isoDatesLen; i < l; i++) {
             if (isoDates[i][1].exec(match[1])) {
                 dateFormat = isoDates[i][0];
                 allowTime = isoDates[i][2] !== false;
@@ -80,7 +81,7 @@ export function configFromISO(config) {
             return;
         }
         if (match[3]) {
-            for (i = 0, l = isoTimes.length; i < l; i++) {
+            for (i = 0, l = isoTimesLen; i < l; i++) {
                 if (isoTimes[i][1].exec(match[3])) {
                     // match[2] should be 'T' or space
                     timeFormat = (match[2] || ' ') + isoTimes[i][0];
@@ -247,8 +248,7 @@ export function configFromString(config) {
 hooks.createFromInputFallback = deprecate(
     'value provided is not in a recognized RFC2822 or ISO format. moment construction falls back to js Date(), ' +
         'which is not reliable across all browsers and versions. Non RFC2822/ISO date formats are ' +
-        'discouraged and will be removed in an upcoming major release. Please refer to ' +
-        'http://momentjs.com/guides/#/warnings/js-date/ for more info.',
+        'discouraged. Please refer to http://momentjs.com/guides/#/warnings/js-date/ for more info.',
     function (config) {
         config._d = new Date(config._i + (config._useUTC ? ' UTC' : ''));
     }

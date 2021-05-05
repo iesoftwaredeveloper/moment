@@ -1,6 +1,7 @@
 //! moment.js locale configuration
 //! locale : Serbian Cyrillic [sr-cyrl]
 //! author : Milan Janačković<milanjanackovic@gmail.com> : https://github.com/milan-j
+//! author : Stefan Crnjaković <stefan@hotmail.rs> : https://github.com/crnjakovic
 
 import moment from '../moment';
 
@@ -8,32 +9,43 @@ var translator = {
     words: {
         //Different grammatical cases
         ss: ['секунда', 'секунде', 'секунди'],
-        m: ['један минут', 'једне минуте'],
-        mm: ['минут', 'минуте', 'минута'],
+        m: ['један минут', 'једног минута'],
+        mm: ['минут', 'минута', 'минута'],
         h: ['један сат', 'једног сата'],
         hh: ['сат', 'сата', 'сати'],
+        d: ['један дан', 'једног дана'],
         dd: ['дан', 'дана', 'дана'],
+        M: ['један месец', 'једног месеца'],
         MM: ['месец', 'месеца', 'месеци'],
-        yy: ['година', 'године', 'година'],
+        y: ['једну годину', 'једне године'],
+        yy: ['годину', 'године', 'година'],
     },
     correctGrammaticalCase: function (number, wordKey) {
-        return number === 1
-            ? wordKey[0]
-            : number >= 2 && number <= 4
-            ? wordKey[1]
-            : wordKey[2];
-    },
-    translate: function (number, withoutSuffix, key) {
-        var wordKey = translator.words[key];
-        if (key.length === 1) {
-            return withoutSuffix ? wordKey[0] : wordKey[1];
-        } else {
-            return (
-                number +
-                ' ' +
-                translator.correctGrammaticalCase(number, wordKey)
-            );
+        if (
+            number % 10 >= 1 &&
+            number % 10 <= 4 &&
+            (number % 100 < 10 || number % 100 >= 20)
+        ) {
+            return number % 10 === 1 ? wordKey[0] : wordKey[1];
         }
+        return wordKey[2];
+    },
+    translate: function (number, withoutSuffix, key, isFuture) {
+        var wordKey = translator.words[key];
+
+        if (key.length === 1) {
+            // Nominativ
+            if (key === 'y' && withoutSuffix) return 'једна година';
+            return isFuture || withoutSuffix ? wordKey[0] : wordKey[1];
+        }
+
+        const word = translator.correctGrammaticalCase(number, wordKey);
+        // Nominativ
+        if (key === 'yy' && withoutSuffix && word === 'годину') {
+            return number + ' година';
+        }
+
+        return number + ' ' + word;
     },
 };
 
@@ -52,10 +64,10 @@ export default moment.defineLocale('sr-cyrl', {
     longDateFormat: {
         LT: 'H:mm',
         LTS: 'H:mm:ss',
-        L: 'DD.MM.YYYY',
-        LL: 'D. MMMM YYYY',
-        LLL: 'D. MMMM YYYY H:mm',
-        LLLL: 'dddd, D. MMMM YYYY H:mm',
+        L: 'D. M. YYYY.',
+        LL: 'D. MMMM YYYY.',
+        LLL: 'D. MMMM YYYY. H:mm',
+        LLLL: 'dddd, D. MMMM YYYY. H:mm',
     },
     calendar: {
         sameDay: '[данас у] LT',
@@ -99,17 +111,17 @@ export default moment.defineLocale('sr-cyrl', {
         mm: translator.translate,
         h: translator.translate,
         hh: translator.translate,
-        d: 'дан',
+        d: translator.translate,
         dd: translator.translate,
-        M: 'месец',
+        M: translator.translate,
         MM: translator.translate,
-        y: 'годину',
+        y: translator.translate,
         yy: translator.translate,
     },
     dayOfMonthOrdinalParse: /\d{1,2}\./,
     ordinal: '%d.',
     week: {
         dow: 1, // Monday is the first day of the week.
-        doy: 7, // The week that contains Jan 7th is the first week of the year.
+        doy: 7, // The week that contains Jan 1st is the first week of the year.
     },
 });
